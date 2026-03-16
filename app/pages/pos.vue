@@ -3,6 +3,8 @@ import ProductFilter from "~/components/pos/ProductFilter.vue";
 import Cart from "~/components/pos/Cart.vue";
 import ProductGrid from "~/components/pos/ProductGrid.vue";
 import WeighScale from "~/components/pos/WeighScale.vue";
+import CheckoutModal from "~/components/pos/CheckoutModal.vue";
+import ReceiptModal from "~/components/pos/ReceiptModal.vue";
 
 const cart = ref([]);
 
@@ -13,6 +15,9 @@ const filters = ref({
 
 const showWeighScale = ref(false);
 const weighingProduct = ref(null);
+const showCheckout = ref(false);
+const showReceipt = ref(false);
+const currentTransaction = ref(null);
 
 function updateFilters(f) {
   filters.value = f;
@@ -55,6 +60,27 @@ function confirmWeight(weightData) {
 
 function removeFromCart(id) {
   cart.value = cart.value.filter((p) => p.id !== id);
+}
+
+function handleCheckout() {
+  showCheckout.value = true;
+}
+
+function confirmPayment(paymentData) {
+  currentTransaction.value = {
+    ...paymentData,
+    items: [...cart.value],
+    date: new Date(),
+  };
+
+  cart.value = [];
+  showCheckout.value = false;
+  showReceipt.value = true;
+}
+
+function closeReceipt() {
+  showReceipt.value = false;
+  currentTransaction.value = null;
 }
 
 const total = computed(() =>
@@ -107,7 +133,7 @@ const total = computed(() =>
       <div
         class="h-full bg-white shadow-xl shadow-gray-200/50 rounded-2xl p-6 border border-gray-100"
       >
-        <Cart :items="cart" :total="total" @remove="removeFromCart" />
+        <Cart :items="cart" :total="total" @remove="removeFromCart" @checkout="handleCheckout" />
       </div>
     </div>
 
@@ -123,6 +149,22 @@ const total = computed(() =>
           weighingProduct = null;
         }
       "
+    />
+
+    <!-- Checkout Modal -->
+    <CheckoutModal
+      v-if="showCheckout"
+      :items="cart"
+      :total="total"
+      @close="showCheckout = false"
+      @confirm="confirmPayment"
+    />
+
+    <!-- Receipt Modal -->
+    <ReceiptModal
+      v-if="showReceipt && currentTransaction"
+      :transaction="currentTransaction"
+      @close="closeReceipt"
     />
   </div>
 </template>

@@ -4,7 +4,7 @@ const props = defineProps({
   total: Number,
 });
 
-const emit = defineEmits(["remove"]);
+const emit = defineEmits(["remove", "checkout"]);
 </script>
 
 <template>
@@ -87,7 +87,9 @@ const emit = defineEmits(["remove"]);
       </div>
 
       <button
-        class="w-full py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+        @click="emit('checkout')"
+        :disabled="items.length === 0"
+        class="w-full py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
       >
         Checkout
       </button>
