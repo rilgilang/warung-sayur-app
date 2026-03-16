@@ -4,11 +4,20 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  branch: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(["close", "print"]);
 
 const receiptRef = ref(null);
+const branchInfo = ref(props.branch || {
+  name: "Warung Sayur",
+  address: "Jl. Raya Sayur No. 123",
+  phone: "0812-3456-7890",
+});
 
 function printReceipt() {
   const printContent = receiptRef.value.innerHTML;
@@ -80,9 +89,9 @@ function printReceipt() {
       <div ref="receiptRef" class="p-6">
         <!-- Store Header -->
         <div class="text-center border-b border-dashed border-gray-300 pb-4 mb-4">
-          <h1 class="text-lg font-bold text-gray-800 mb-1">Toko Sayur Segar</h1>
-          <p class="text-sm text-gray-500">Jl. Raya Sayur No. 123</p>
-          <p class="text-sm text-gray-500">Telp: 0812-3456-7890</p>
+          <h1 class="text-lg font-bold text-gray-800 mb-1">{{ branchInfo.name }}</h1>
+          <p class="text-sm text-gray-500">{{ branchInfo.address }}</p>
+          <p class="text-sm text-gray-500">Telp: {{ branchInfo.phone }}</p>
           <p class="text-xs text-gray-400 mt-2">
             {{ new Date().toLocaleString('id-ID') }}
           </p>

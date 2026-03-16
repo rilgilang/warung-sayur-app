@@ -6,6 +6,7 @@ import WeighScale from "~/components/pos/WeighScale.vue";
 import CheckoutModal from "~/components/pos/CheckoutModal.vue";
 import ReceiptModal from "~/components/pos/ReceiptModal.vue";
 
+const router = useRouter();
 const cart = ref([]);
 
 const filters = ref({
@@ -18,6 +19,21 @@ const weighingProduct = ref(null);
 const showCheckout = ref(false);
 const showReceipt = ref(false);
 const currentTransaction = ref(null);
+const currentBranch = ref(null);
+
+// Get selected branch
+onMounted(() => {
+  const savedBranch = localStorage.getItem("selectedBranch");
+  if (savedBranch) {
+    currentBranch.value = JSON.parse(savedBranch);
+  } else {
+    router.push("/");
+  }
+});
+
+function switchBranch() {
+  router.push("/");
+}
 
 function updateFilters(f) {
   filters.value = f;
@@ -96,13 +112,23 @@ const total = computed(() =>
     <div class="w-2/3 p-6 flex flex-col gap-6 overflow-hidden">
       <!-- Header -->
       <div class="flex items-center justify-between">
-        <div>
-          <h1
-            class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent"
-          >
-            Warung Sayur
-          </h1>
-          <p class="text-gray-500 mt-1">Kelola pesanan sayuran Anda</p>
+        <div class="flex items-center gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h1
+                class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent"
+              >
+                Warung Sayur
+              </h1>
+              <span
+                v-if="currentBranch"
+                class="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-full"
+              >
+                {{ currentBranch.name.split(' - ')[1] || currentBranch.name }}
+              </span>
+            </div>
+            <p class="text-gray-500 mt-1 text-sm">{{ currentBranch?.address }}</p>
+          </div>
         </div>
         <div class="flex items-center gap-3">
           <div
@@ -113,6 +139,15 @@ const total = computed(() =>
               cart.length
             }}</span>
           </div>
+          <button
+            @click="switchBranch"
+            class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl shadow-sm border border-gray-200 transition-all duration-200 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            Ganti Cabang
+          </button>
         </div>
       </div>
 
@@ -164,6 +199,7 @@ const total = computed(() =>
     <ReceiptModal
       v-if="showReceipt && currentTransaction"
       :transaction="currentTransaction"
+      :branch="currentBranch"
       @close="closeReceipt"
     />
   </div>
