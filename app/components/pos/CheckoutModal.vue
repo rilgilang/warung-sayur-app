@@ -32,15 +32,60 @@ function quickCash(amount) {
   cashReceived.value = amount;
 }
 
-function processPayment() {
+async function processPayment() {
   if (paymentMethod.value === "cash" && !isCashSufficient.value) {
     return;
   }
 
   isProcessing.value = true;
   
-  // Simulate processing
-  setTimeout(() => {
+  try {
+    // Prepare transaction data
+    const transactionData = {
+      timestamp: new Date().toISOString(),
+      paymentMethod: paymentMethod.value,
+      items: props.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        pricePerUnit: item.price / item.qty,
+        ...(item.weight && { weight: item.weight, weightUnit: 'grams' }),
+        ...(item.pricePerKg && { pricePerKg: item.pricePerKg }),
+      })),
+      subtotal: props.total,
+      payment: {
+        method: paymentMethod.value,
+        ...(paymentMethod.value === 'cash' && {
+          cashReceived: cashReceived.value,
+          change: change.value,
+        }),
+        ...(paymentMethod.value === 'qris' && {
+          qrisCode: 'DEMO_QRIS_CODE',
+          status: 'pending_confirmation',
+        }),
+      },
+      totalAmount: props.total,
+    };
+
+    console.log('Sending transaction data:', transactionData);
+
+    // Send to webhook
+    const response = await fetch('https://webhook.site/cdd53218-e868-404d-bba5-7495aaed06e8', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send transaction');
+    }
+
+    console.log('Transaction sent successfully');
+
+    // Emit confirm event
     emit("confirm", {
       paymentMethod: paymentMethod.value,
       cashReceived: paymentMethod.value === "cash" ? cashReceived.value : 0,
@@ -48,8 +93,12 @@ function processPayment() {
       total: props.total,
       items: props.items,
     });
+  } catch (error) {
+    console.error('Transaction error:', error);
+    alert('Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.');
+  } finally {
     isProcessing.value = false;
-  }, 1000);
+  }
 }
 </script>
 

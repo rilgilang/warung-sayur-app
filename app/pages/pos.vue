@@ -5,9 +5,11 @@ import ProductGrid from "~/components/pos/ProductGrid.vue";
 import WeighScale from "~/components/pos/WeighScale.vue";
 import CheckoutModal from "~/components/pos/CheckoutModal.vue";
 import ReceiptModal from "~/components/pos/ReceiptModal.vue";
+import { useStock } from "~/composables/useStock";
 
 const router = useRouter();
 const cart = ref([]);
+const { deductStock } = useStock();
 
 const filters = ref({
   search: "",
@@ -83,6 +85,14 @@ function handleCheckout() {
 }
 
 function confirmPayment(paymentData) {
+  // Deduct stock
+  const result = deductStock(currentBranch.value.id, cart.value);
+  
+  if (!result.success) {
+    alert(result.message);
+    return;
+  }
+
   currentTransaction.value = {
     ...paymentData,
     items: [...cart.value],
@@ -139,6 +149,15 @@ const total = computed(() =>
               cart.length
             }}</span>
           </div>
+          <button
+            @click="router.push('/stock')"
+            class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl shadow-sm border border-gray-200 transition-all duration-200 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            Stok
+          </button>
           <button
             @click="switchBranch"
             class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl shadow-sm border border-gray-200 transition-all duration-200 flex items-center gap-2"
